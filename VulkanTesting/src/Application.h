@@ -1,12 +1,53 @@
 #pragma once
 
+#pragma warning(push)
+#pragma warning(disable: 26812) // Disable warnings for unscoped enums in Vulkan
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#pragma warning(pop)
+
+#include <glm/glm.hpp>
+
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include <array>
 #include <optional>
+
+struct Vertex
+{
+	glm::vec2 Position;
+	glm::vec3 Color;
+
+	static VkVertexInputBindingDescription GetBindingDescription()
+	{
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0; // Index of binding in array of bindings
+		bindingDescription.stride = sizeof(Vertex); // Bytes from one entry to the next
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // Move to the next data entry after each vertex
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+	{
+		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+		// Position
+		attributeDescriptions[0].binding = 0; // From which binding is the per-vertex data coming
+		attributeDescriptions[0].location = 0; // Reference to 'location' directive in vertex shader input
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT; // Commonly used format for vec2 data
+		attributeDescriptions[0].offset = offsetof(Vertex, Position);
+
+		// Color
+		attributeDescriptions[1].binding = 0; 
+		attributeDescriptions[1].location = 1; 
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT; // Commonly used format for vec3 data
+		attributeDescriptions[1].offset = offsetof(Vertex, Color);
+
+		return attributeDescriptions;
+	}
+};
 
 struct QueueFamilyIndices
 {
@@ -57,6 +98,16 @@ private:
 	void CreateCommandBuffers();
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
 	void CreateSyncObjects();
+	void CreateVertexBuffer();
+	void CreateBuffer(
+		VkDeviceSize size, 
+		VkBufferUsageFlags usage, 
+		VkMemoryPropertyFlags properties, 
+		VkBuffer& buffer, 
+		VkDeviceMemory& deviceMemory);
+	void CreateIndexBuffer();
+	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	
 	void MainLoop();
 	void DrawFrame();
@@ -122,4 +173,20 @@ private:
 	std::vector<VkFence> m_InFlightFences;
 
 	bool m_FramebufferResized = false;
+
+	const std::vector<Vertex> m_Vertices = {
+		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+	};
+
+	const std::vector<uint16_t> m_Indices = {
+		0, 1, 2, 2, 3, 0
+	};
+
+	VkBuffer m_VertexBuffer;
+	VkDeviceMemory m_VertexBufferMemory;
+	VkBuffer m_IndexBuffer;
+	VkDeviceMemory m_IndexBufferMemory;
 };
