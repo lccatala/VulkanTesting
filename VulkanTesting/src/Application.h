@@ -6,7 +6,10 @@
 #include <GLFW/glfw3.h>
 #pragma warning(pop)
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -14,6 +17,14 @@
 #include <vector>
 #include <array>
 #include <optional>
+#include <chrono>
+
+struct UniformBufferObject
+{
+	alignas(16) glm::mat4 Model;
+	alignas(16) glm::mat4 View;
+	alignas(16) glm::mat4 Projection;
+};
 
 struct Vertex
 {
@@ -90,6 +101,7 @@ private:
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	void CreateRenderPass();
+	void CreateDescriptorSetLayout();
 	void CreateGraphicsPipeline();
 	static std::vector<char> ReadFile(const std::string& filename);
 	VkShaderModule CreateShaderModule(const std::vector<char>& code);
@@ -108,6 +120,11 @@ private:
 	void CreateIndexBuffer();
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	void CreateUniformBuffers();
+	void CreateDescriptorPool();
+	void CreateDescriptorSets();
+	void UpdateUniformBuffer(uint32_t currentImage);
+
 	
 	void MainLoop();
 	void DrawFrame();
@@ -162,6 +179,7 @@ private:
 	std::vector<VkFramebuffer> m_SwapchainFramebuffers;
 
 	VkRenderPass m_RenderPass;
+	VkDescriptorSetLayout m_DescriptorSetLayout;
 	VkPipelineLayout m_PipelineLayout;
 	VkPipeline m_GraphicsPipeline;
 
@@ -189,4 +207,10 @@ private:
 	VkDeviceMemory m_VertexBufferMemory;
 	VkBuffer m_IndexBuffer;
 	VkDeviceMemory m_IndexBufferMemory;
+
+	std::vector<VkBuffer> m_UniformBuffers;
+	std::vector<VkDeviceMemory> m_UniformBufferMemories;
+
+	VkDescriptorPool m_DescriptorPool;
+	std::vector<VkDescriptorSet> m_DescriptorSets;
 };
