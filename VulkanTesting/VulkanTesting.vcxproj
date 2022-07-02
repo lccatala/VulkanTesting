@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glfw\include;C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glm;C:\VulkanSDK\1.3.216.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glfw\include;C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glm;C:\VulkanSDK\1.3.216.0\Include;C:\Users\alpas\Documents\Visual Studio 2022\Libraries\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -135,7 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glfw\include;C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glm;C:\VulkanSDK\1.3.216.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glfw\include;C:\Users\alpas\Documents\Visual Studio 2022\Libraries\glm;C:\VulkanSDK\1.3.216.0\Include;C:\Users\alpas\Documents\Visual Studio 2022\Libraries\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>

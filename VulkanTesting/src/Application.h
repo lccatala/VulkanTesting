@@ -30,6 +30,7 @@ struct Vertex
 {
 	glm::vec2 Position;
 	glm::vec3 Color;
+	glm::vec2 TextureCoordinates;
 
 	static VkVertexInputBindingDescription GetBindingDescription()
 	{
@@ -40,9 +41,9 @@ struct Vertex
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+	static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
 	{
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
 		// Position
 		attributeDescriptions[0].binding = 0; // From which binding is the per-vertex data coming
@@ -55,6 +56,12 @@ struct Vertex
 		attributeDescriptions[1].location = 1; 
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT; // Commonly used format for vec3 data
 		attributeDescriptions[1].offset = offsetof(Vertex, Color);
+
+		// Color
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(Vertex, TextureCoordinates);
 
 		return attributeDescriptions;
 	}
@@ -124,8 +131,24 @@ private:
 	void CreateDescriptorPool();
 	void CreateDescriptorSets();
 	void UpdateUniformBuffer(uint32_t currentImage);
+	void CreateTextureImage();
+	void CreateTextureImageView();
+	VkImageView CreateImageView(VkImage image, VkFormat format);
+	void CreateImage(
+		uint32_t width, 
+		uint32_t height, 
+		VkFormat format, 
+		VkImageTiling tiling, 
+		VkImageUsageFlags usage,
+		VkMemoryPropertyFlags properties,
+		VkImage& image, 
+		VkDeviceMemory& imageMemory);
+	VkCommandBuffer BeginSingleTimeCommands();
+	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+	void CreateTextureSampler();
 
-	
 	void MainLoop();
 	void DrawFrame();
 
@@ -193,10 +216,10 @@ private:
 	bool m_FramebufferResized = false;
 
 	const std::vector<Vertex> m_Vertices = {
-		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-		{{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 	};
 
 	const std::vector<uint16_t> m_Indices = {
@@ -213,4 +236,9 @@ private:
 
 	VkDescriptorPool m_DescriptorPool;
 	std::vector<VkDescriptorSet> m_DescriptorSets;
+
+	VkImage m_TextureImage;
+	VkDeviceMemory m_TextureImageMemory;
+	VkImageView m_TextureImageView;
+	VkSampler m_TextureSampler;
 };
