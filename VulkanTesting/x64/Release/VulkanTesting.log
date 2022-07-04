@@ -1,8 +1,8 @@
 ﻿  Application.cpp
   main.cpp
   Generating code
-  3032 of 3234 functions (93.8%) were compiled, the rest were copied from previous compilation.
-    2855 functions were new in current compilation
-    38 functions had inline decision re-evaluated but remain unchanged
+  20 of 3237 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    14 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   VulkanTesting.vcxproj -> C:\Users\alpas\source\repos\VulkanTesting\x64\Release\VulkanTesting.exe
