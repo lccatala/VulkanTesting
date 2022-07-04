@@ -3,11 +3,15 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tinyobjloader.h"
+
 #include <cstring>
 #include <set>
 #include <limits>
 #include <algorithm>
 #include <fstream>
+#include <unordered_map>
 
 void Application::FramebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -50,6 +54,7 @@ void Application::InitVulkan()
 	CreateTextureImage();
 	CreateTextureImageView();
 	CreateTextureSampler();
+	LoadModel();
 	CreateVertexBuffer();
 	CreateIndexBuffer();
 	CreateUniformBuffers();
@@ -990,7 +995,7 @@ void Application::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t in
 	VkBuffer vertexBuffers[] = { m_VertexBuffer };
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-	vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 	vkCmdBindDescriptorSets(
 		commandBuffer,
@@ -1178,7 +1183,7 @@ void Application::CreateTextureImage()
 {
 	// Read texture to staging buffer
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load("resources/textures/creeper_head2.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load(m_TexturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	if (!pixels)
 	{
@@ -1510,6 +1515,49 @@ void Application::CreateImage(
 	vkBindImageMemory(m_Device, image, imageMemory, 0);
 }
 
+void Application::LoadModel()
+{
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string warn, err;
+
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, m_ModelPath.c_str()))
+	{
+		throw std::runtime_error(warn + err);
+	}
+
+	std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+	for (const auto& shape : shapes)
+	{
+		for (const auto& index : shape.mesh.indices)
+		{
+			Vertex vertex{};
+	
+			vertex.Position = {
+				attrib.vertices[3 * index.vertex_index + 0],
+				attrib.vertices[3 * index.vertex_index + 1],
+				attrib.vertices[3 * index.vertex_index + 2],
+			};
+
+			vertex.TextureCoordinates = {
+				attrib.texcoords[2 * index.texcoord_index + 0],
+				1.0f - attrib.texcoords[2 * index.texcoord_index + 1] // Flip vertical texture coordinate
+			};
+
+			vertex.Color = { 1.0f, 1.0f, 1.0f };
+
+			// Check if already seen a vertex with the same position and texture coordinates
+			if (uniqueVertices.count(vertex) == 0)
+			{
+				uniqueVertices[vertex] = static_cast<uint32_t>(m_Vertices.size());
+				m_Vertices.push_back(vertex);
+			}
+
+			m_Indices.push_back(uniqueVertices[vertex]);
+		}
+	}
+}
 
 void Application::RecreateSwapchain()
 {

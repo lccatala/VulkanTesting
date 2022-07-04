@@ -7,10 +7,12 @@
 #pragma warning(pop)
 
 #define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+//#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE // Depth ranges from 0 to 1 instead of -1 to 1 (Vulkan vs OpenGL)
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -26,6 +28,7 @@ struct UniformBufferObject
 	alignas(16) glm::mat4 View;
 	alignas(16) glm::mat4 Projection;
 };
+
 
 struct Vertex
 {
@@ -66,7 +69,26 @@ struct Vertex
 
 		return attributeDescriptions;
 	}
+
+	bool operator==(const Vertex& other) const
+	{
+		return Position == other.Position && Color == other.Color && TextureCoordinates == other.TextureCoordinates;
+	}
 };
+
+namespace std
+{
+	template<> struct hash<Vertex>
+	{
+		size_t operator()(Vertex const& vertex) const
+		{
+			return
+				((hash<glm::vec3>()(vertex.Position) ^
+				 (hash<glm::vec3>()(vertex.Color) << 1)) >> 1) ^
+				 (hash<glm::vec2>()(vertex.TextureCoordinates) << 1);
+		}
+	};
+}
 
 struct QueueFamilyIndices
 {
@@ -153,6 +175,7 @@ private:
 	VkFormat FindDepthFormat();
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	bool HasStencilComponent(VkFormat format);
+	void LoadModel();
 
 	void MainLoop();
 	void DrawFrame();
@@ -220,28 +243,6 @@ private:
 
 	bool m_FramebufferResized = false;
 
-	const std::vector<Vertex> m_Vertices = {
-		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-		{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-		{{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-
-		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-		{{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-		{{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-		{{-0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-	};
-
-	const std::vector<uint16_t> m_Indices = {
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4
-	};
-
-	VkBuffer m_VertexBuffer;
-	VkDeviceMemory m_VertexBufferMemory;
-	VkBuffer m_IndexBuffer;
-	VkDeviceMemory m_IndexBufferMemory;
-
 	std::vector<VkBuffer> m_UniformBuffers;
 	std::vector<VkDeviceMemory> m_UniformBufferMemories;
 
@@ -257,4 +258,14 @@ private:
 	VkImage m_DepthImage;
 	VkDeviceMemory m_DepthImageMemory;
 	VkImageView m_DepthImageView;
+
+	// Model
+	const std::string m_ModelPath = "resources/models/viking_room.obj";
+	const std::string m_TexturePath = "resources/textures/viking_room.png";
+	std::vector<Vertex> m_Vertices;
+	std::vector<uint32_t> m_Indices;
+	VkBuffer m_VertexBuffer;
+	VkDeviceMemory m_VertexBufferMemory;
+	VkBuffer m_IndexBuffer;
+	VkDeviceMemory m_IndexBufferMemory;
 };
