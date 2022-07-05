@@ -161,6 +161,7 @@ private:
 		uint32_t width, 
 		uint32_t height, 
 		uint32_t mipLevels,
+		VkSampleCountFlagBits numSamples,
 		VkFormat format, 
 		VkImageTiling tiling, 
 		VkImageUsageFlags usage,
@@ -173,11 +174,13 @@ private:
 	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	void CreateTextureSampler();
 	void CreateDepthResources();
+	void CreateColorResources();
 	VkFormat FindDepthFormat();
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	bool HasStencilComponent(VkFormat format);
 	void LoadModel();
 	void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+	VkSampleCountFlagBits GetMaxUsableSampleCount();
 
 	void MainLoop();
 	void DrawFrame();
@@ -271,4 +274,10 @@ private:
 	VkDeviceMemory m_VertexBufferMemory;
 	VkBuffer m_IndexBuffer;
 	VkDeviceMemory m_IndexBufferMemory;
+
+	// Multisampling
+	VkSampleCountFlagBits m_MsaaSamples = VK_SAMPLE_COUNT_1_BIT;
+	VkImage m_ColorImage;
+	VkDeviceMemory m_ColorImageMemory;
+	VkImageView m_ColorImageView;
 };
