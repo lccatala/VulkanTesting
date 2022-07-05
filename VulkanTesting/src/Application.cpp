@@ -250,6 +250,7 @@ void Application::CreateLogicalDevice()
 	}
 	VkPhysicalDeviceFeatures deviceFeatures{};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	deviceFeatures.sampleRateShading = VK_TRUE; // Sample shading (smooth textures, worse performance)
 
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -572,9 +573,9 @@ void Application::CreateGraphicsPipeline()
 	// Multisampling disabled for now
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisampling.sampleShadingEnable = VK_FALSE;
+	multisampling.sampleShadingEnable = VK_TRUE; // Sample shading (smooth textures, worse performance)
 	multisampling.rasterizationSamples = m_MsaaSamples;
-	multisampling.minSampleShading = 1.0f; // Optional
+	multisampling.minSampleShading = 0.2f; // Min fraction for sample shading, closer to 1 is smoother
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 	multisampling.alphaToOneEnable = VK_FALSE; // Optional
