@@ -1787,6 +1787,10 @@ void Application::RecreateSwapchain()
 
 void Application::CleanupSwapchain()
 {
+	vkDestroyImageView(m_Device, m_ColorImageView, nullptr);
+	vkDestroyImage(m_Device, m_ColorImage, nullptr);
+	vkFreeMemory(m_Device, m_ColorImageMemory, nullptr);
+
 	vkDestroyImageView(m_Device, m_DepthImageView, nullptr);
 	vkDestroyImage(m_Device, m_DepthImage, nullptr);
 	vkFreeMemory(m_Device, m_DepthImageMemory, nullptr);
@@ -1812,9 +1816,6 @@ void Application::CleanupSwapchain()
 
 void Application::Cleanup()
 {
-	vkDestroyImageView(m_Device, m_ColorImageView, nullptr);
-	vkDestroyImage(m_Device, m_ColorImage, nullptr);
-	vkFreeMemory(m_Device, m_ColorImageMemory, nullptr);
 
 	for (size_t i = 0; i < m_MaxFramesInFlight; ++i)
 	{
