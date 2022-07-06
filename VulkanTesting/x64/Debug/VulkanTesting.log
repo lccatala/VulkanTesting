@@ -1,2 +1,4 @@
 ﻿  Application.cpp
+C:\Users\alpas\source\repos\VulkanTesting\VulkanTesting\src\Application.cpp(93,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\alpas\source\repos\VulkanTesting\VulkanTesting\src\Application.cpp(97,54): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   VulkanTesting.vcxproj -> C:\Users\alpas\source\repos\VulkanTesting\x64\Debug\VulkanTesting.exe

@@ -226,7 +226,18 @@ private:
 	VkQueue m_PresentQueue;
 
 	// Swapchain
-	const std::vector<const char*> m_DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	const std::vector<const char*> m_DeviceExtensions = { 
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+		VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+		VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+		VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+		VK_KHR_MAINTENANCE3_EXTENSION_NAME,
+		VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME
+		//VK_VERSION_1_1"
+	};
 	VkSwapchainKHR m_Swapchain;
 	std::vector<VkImage> m_SwapchainImages;
 	std::vector<VkImageView> m_SwapchainImageViews;
@@ -280,4 +291,10 @@ private:
 	VkImage m_ColorImage;
 	VkDeviceMemory m_ColorImageMemory;
 	VkImageView m_ColorImageView;
+
+	// Ray tracing
+
+	const std::vector<const char*> m_InstanceExtensions = { 
+		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+	};
 };

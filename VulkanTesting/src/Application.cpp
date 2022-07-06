@@ -79,7 +79,7 @@ void Application::CreateInstance()
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.pEngineName = "No Engine";
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.apiVersion = VK_API_VERSION_1_1;
 
 	// Extensions and validation layers
 	VkInstanceCreateInfo createInfo{};
@@ -88,8 +88,14 @@ void Application::CreateInstance()
 	uint32_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-	createInfo.enabledExtensionCount = glfwExtensionCount;
-	createInfo.ppEnabledExtensionNames = glfwExtensions;
+	std::vector<const char*> extensions;
+	extensions.reserve(glfwExtensionCount + m_InstanceExtensions.size());
+	for (int i = 0; i < glfwExtensionCount; ++i)
+		extensions.emplace_back(glfwExtensions[i]);
+	for (const auto& instanceExtension : m_InstanceExtensions)
+		extensions.emplace_back(instanceExtension);
+	createInfo.enabledExtensionCount = extensions.size();
+	createInfo.ppEnabledExtensionNames = extensions.data();
 	if (m_EnableValidationLayers)
 	{
 		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -221,14 +227,23 @@ bool Application::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
 	std::set<std::string> requiredExtensions(m_DeviceExtensions.begin(), m_DeviceExtensions.end());
 	for (const auto& extension : availableExtensions)
 	{
+		std::cout << extension.extensionName << std::endl;
 		requiredExtensions.erase(extension.extensionName);
 	}
 
-	return requiredExtensions.empty();
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+	std::vector<VkExtensionProperties> availableInstanceExtensions(extensionCount);
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableInstanceExtensions.data());
+	std::set<std::string> requiredInstanceExtensions(m_InstanceExtensions.begin(), m_InstanceExtensions.end());
+	for (const auto& extension : availableInstanceExtensions)
+	{
+		requiredInstanceExtensions.erase(extension.extensionName);
+	}
+
+	return requiredExtensions.empty() && requiredInstanceExtensions.empty();
 }
 
 void Application::CreateLogicalDevice()
@@ -248,15 +263,19 @@ void Application::CreateLogicalDevice()
 		queueCreateInfo.pQueuePriorities = &queuePriority;
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
-	VkPhysicalDeviceFeatures deviceFeatures{};
-	deviceFeatures.samplerAnisotropy = VK_TRUE;
-	deviceFeatures.sampleRateShading = VK_TRUE; // Sample shading (smooth textures, worse performance)
+	VkPhysicalDeviceFeatures2 deviceFeatures{};
+	deviceFeatures.features.samplerAnisotropy = VK_TRUE;
+	deviceFeatures.features.sampleRateShading = VK_TRUE; // Sample shading (smooth textures, worse performance)
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR accelFeature{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+	VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeature{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
+	accelFeature.pNext = &rtPipelineFeature;
+	deviceFeatures.pNext = &rtPipelineFeature;
 
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.pEnabledFeatures = &deviceFeatures.features;
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(m_DeviceExtensions.size());
 	createInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
 	if (m_EnableValidationLayers)
