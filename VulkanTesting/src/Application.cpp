@@ -4,7 +4,9 @@
 #include <stb_image.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "tinyobjloader.h"
+#include <tinyobjloader.h>
+
+#include "extensions_vk.hpp"
 
 #include <cstring>
 #include <set>
@@ -23,6 +25,7 @@ void Application::Run()
 {
 	InitWindow();
 	InitVulkan();
+	InitRaytracing();
 	MainLoop();
 	Cleanup();
 }
@@ -432,6 +435,15 @@ VkExtent2D Application::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabil
 
 		return actualExtent;
 	}
+}
+
+void Application::InitRaytracing()
+{
+	load_VK_EXTENSIONS(m_VkInstance, vkGetInstanceProcAddr, m_Device, vkGetDeviceProcAddr);
+
+	VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+	prop2.pNext = &m_RtProperties;
+	vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &prop2);
 }
 
 void Application::CreateRenderPass()

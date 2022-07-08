@@ -116,6 +116,7 @@ private:
 	void InitWindow();
 	
 	void InitVulkan();
+	void InitRaytracing();
 	void CreateInstance();
 	bool CheckValidationLayerSupport();
 	void PickPhysicalDevice();
@@ -293,8 +294,8 @@ private:
 	VkImageView m_ColorImageView;
 
 	// Ray tracing
-
 	const std::vector<const char*> m_InstanceExtensions = { 
 		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 	};
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_RtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
 };
