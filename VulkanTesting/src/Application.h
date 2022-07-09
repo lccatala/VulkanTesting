@@ -22,6 +22,9 @@
 #include <optional>
 #include <chrono>
 
+#include "ObjModel.h"
+#include "AccelerationStructure.h"
+
 struct UniformBufferObject
 {
 	alignas(16) glm::mat4 Model;
@@ -117,6 +120,8 @@ private:
 	
 	void InitVulkan();
 	void InitRaytracing();
+	VkDeviceAddress GetBufferDeviceAddress(VkBuffer buffer);
+	BlasInput ObjectToVkGeometryKHR(const ObjModel& model);
 	void CreateInstance();
 	bool CheckValidationLayerSupport();
 	void PickPhysicalDevice();
@@ -183,6 +188,8 @@ private:
 	void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 	VkSampleCountFlagBits GetMaxUsableSampleCount();
 
+	void CreateBottomLevelAS();
+
 	void MainLoop();
 	void DrawFrame();
 
@@ -225,6 +232,8 @@ private:
 
 	// Present queue
 	VkQueue m_PresentQueue;
+
+	QueueFamilyIndices m_QueueFamilyIndices;
 
 	// Swapchain
 	const std::vector<const char*> m_DeviceExtensions = { 
@@ -298,4 +307,7 @@ private:
 		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 	};
 	VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_RtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+	std::vector<ObjModel> m_ObjModel;   // Model on host
+	RaytracingBuilder m_RtBuilder;
+
 };

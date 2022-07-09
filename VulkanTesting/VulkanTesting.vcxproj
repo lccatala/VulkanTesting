@@ -149,13 +149,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AccelerationStructure.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\extensions_vk.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AccelerationStructure.h" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\extensions_vk.hpp" />
+    <ClInclude Include="src\ObjModel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\compile.bat" />

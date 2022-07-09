@@ -233,7 +233,6 @@ bool Application::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 	std::set<std::string> requiredExtensions(m_DeviceExtensions.begin(), m_DeviceExtensions.end());
 	for (const auto& extension : availableExtensions)
 	{
-		std::cout << extension.extensionName << std::endl;
 		requiredExtensions.erase(extension.extensionName);
 	}
 
@@ -444,6 +443,71 @@ void Application::InitRaytracing()
 	VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
 	prop2.pNext = &m_RtProperties;
 	vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &prop2);
+	m_RtBuilder.Setup(m_Device, FindQueueFamilies(m_PhysicalDevice).GraphicsFamily.value());
+}
+
+BlasInput Application::ObjectToVkGeometryKHR(const ObjModel& model)
+{
+	VkDeviceAddress vertexAddress = GetBufferDeviceAddress(model.vertexBuffer);
+	VkDeviceAddress indexAddress = GetBufferDeviceAddress(model.indexBuffer);
+
+	uint32_t maxPrimitiveCount = model.nbIndices / 3;
+
+	// Describe buffer as array of VertexObj
+	VkAccelerationStructureGeometryTrianglesDataKHR triangles
+	{
+		VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR
+	};
+	triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+	triangles.vertexData.deviceAddress = vertexAddress;
+	triangles.vertexStride = sizeof(VertexObj);
+	
+	// Describe index data (32-bit uint)
+	triangles.indexType = VK_INDEX_TYPE_UINT32;
+	triangles.indexData.deviceAddress = indexAddress;
+	triangles.maxVertex = model.nbVertices;
+
+	// Identify the above data as containing opaque triangles
+	VkAccelerationStructureGeometryKHR asGeom{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
+	asGeom.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+	asGeom.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+	asGeom.geometry.triangles = triangles;
+
+	// The entire array will be used to build the BLAS
+	VkAccelerationStructureBuildRangeInfoKHR offset;
+	offset.firstVertex = 0;
+	offset.primitiveCount = maxPrimitiveCount;
+	offset.primitiveOffset = 0;
+	offset.transformOffset = 0;
+
+	// Our BLAS is made from only one geometry, but could be made of many geometries
+	BlasInput input;
+	input.AsGeometry.emplace_back(asGeom);
+	input.AsBuildOffsetInfo.emplace_back(offset);
+	
+	return input;
+}
+
+void Application::CreateBottomLevelAS()
+{
+	std::vector<BlasInput> allBlas;
+	allBlas.reserve(m_ObjModel.size());
+	for (const auto& obj : m_ObjModel)
+	{
+		auto blas = ObjectToVkGeometryKHR(obj);
+
+		// We could add more geometry in each BLAS, but we add only one for now
+		allBlas.emplace_back(blas);
+	}
+	
+}
+
+VkDeviceAddress Application::GetBufferDeviceAddress(VkBuffer buffer)
+{
+	VkBufferDeviceAddressInfo info = {VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
+	info.buffer = buffer;
+	return vkGetBufferDeviceAddress(m_Device, &info);
+
 }
 
 void Application::CreateRenderPass()
